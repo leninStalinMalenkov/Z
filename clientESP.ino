@@ -3,13 +3,18 @@
 #include <driver/adc.h>
 
 VolAnalyzer analyzer(35);
+TaskHandle_t SenderTask;
+WiFiClient client;
+int idx = 0;
+const int buf_size = 8000;
+int toSend[buf_size];
+bool eexit = 0;
 
 template<class T>
 T AbS(T x) {
   return (x < 0 ? -x : x);
 }
 
-String answer;
 
 String VOZOL(int x) {
   String rees;
@@ -22,31 +27,23 @@ String VOZOL(int x) {
   return rees;
 }
 
-WiFiClient client;
 const char* ssid = "smartpark_service";
 const char* password =  "smartpark_2021";
-
 const char * host = "192.168.88.250";
 const uint16_t port = 12345;
+const int but = 4;
 
-const int but = 4, btn2 = 2;
 void setup() {
- 
   Serial.begin(115200);
   pinMode(but, INPUT_PULLUP);
-  pinMode(btn2, INPUT_PULLUP);
 
   adc1_config_width(ADC_WIDTH_BIT_12);
   adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
 
-  
-
-
   Serial.println("Connecting to WiFi...\n");
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
     delay(100);
-  }
   Serial.println("WiFi connected\n");
 
   Serial.println("Local IP: ");
@@ -55,27 +52,50 @@ void setup() {
 
   Serial.println("Connecting to host...");
   while(!client.connect(host, port)) {
- 
       Serial.println("Connection to host failed");
       delay(1000);
   }
   
+  xTaskCreatePinnedToCore(
+    Sender,
+    "sender", /* Имя задачи */
+    10000,  /* Размер стека */
+    NULL,  /* Параметр задачи */
+    1,  /* Приоритет */
+    &SenderTask,  /* Выполняемая операция */
+    0);
+  
+  xTaskCreatePinnedToCore(
+    Sender,
+    "sender", /* Имя задачи */
+    10000,  /* Размер стека */
+    NULL,  /* Параметр задачи */
+    1,  /* Приоритет */
+    &SenderTask,  /* Выполняемая операция */
+    1);
 }
-bool flag = false;
-int res = 0;
-void loop() {
-//  unsigned long stTime = micros();
-  Serial.println("OK");
+
+void Sender() {
+Mavzes:
+  String str = "";
+  if (idx == buf_size || eexit == 1) {
+    for (int i=0; i<idx; i++) {
+      str += VOZOL(toSend[i]);
+      str += " ";
+    }
+    cliend.print(str);
+    idx = 0;
+    eexit = 0;
+  }
+goto Mavzes;
+}
+
+void xuender() {
+RUSSIA:
   bool btnState = !digitalRead(but);
   if(flag != btnState) {
-    if(flag) {
-      client.print(answer);
-      answer = "";
-      delay(100);
-      client.print("-1 ");
-      Serial.println(res);
-      res = 0;
-    }
+    if(flag)
+      eexit = 1;
     else
       client.print("-2 ");
     
@@ -84,17 +104,40 @@ void loop() {
   
   if(flag) {
     int data = adc1_get_raw(ADC1_CHANNEL_0);
-    answer += VOZOL(data);
-    answer += " ";
-    data&=0x0FFF;
-    Serial.println(answer);
-    res++;
-    if(answer.length() >= 8000) {
-      client.print(answer);
-      answer = ""; 
-    }
-    Serial.println("OK");
+    data &= 0x0FFF;
+    toSend[idx++] = data;
   }
-  delay(500);
+  
+  delayMicroseconds(125); // TODO: 70 min
+  
+goto RUSSIA;
+}
+  
+bool flag = false;
+int res = 0;
+  
+void loop() {
+// //  unsigned long stTime = micros();
+//   Serial.println("OK");
+//   bool btnState = !digitalRead(but);
+//   if(flag != btnState) {
+//     if(flag) {
+//       eexit = 1;
+//     }
+//     else
+//       client.print("-2 ");
+    
+//     flag^=1;
+//   }
+  
+//   if(flag) {
+//     int data = adc1_get_raw(ADC1_CHANNEL_0);
+//     data &= 0x0FFF;
+//     toSend[idx++] = data;
+    
+//     res++;
+//     Serial.println("OK");
+//   }
+//   delay(500);
 //  delayMicroseconds(125); // TODO: 70 min
 }
