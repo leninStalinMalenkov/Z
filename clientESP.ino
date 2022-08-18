@@ -10,11 +10,19 @@ const int buf_size = 8000;
 int toSend[buf_size];
 bool eexit = 0;
 
+const char* ssid = "smartpark_service";
+const char* password =  "smartpark_2021";
+const char * host = "192.168.88.250";
+const uint16_t port = 12345;
+const int but = 4;
+
+bool flag = false;
+int res = 0;
+
 template<class T>
 T AbS(T x) {
   return (x < 0 ? -x : x);
 }
-
 
 String VOZOL(int x) {
   String rees;
@@ -26,12 +34,6 @@ String VOZOL(int x) {
   }
   return rees;
 }
-
-const char* ssid = "smartpark_service";
-const char* password =  "smartpark_2021";
-const char * host = "192.168.88.250";
-const uint16_t port = 12345;
-const int but = 4;
 
 void setup() {
   Serial.begin(115200);
@@ -112,9 +114,6 @@ RUSSIA:
   
 goto RUSSIA;
 }
-  
-bool flag = false;
-int res = 0;
   
 void loop() {
 // //  unsigned long stTime = micros();
