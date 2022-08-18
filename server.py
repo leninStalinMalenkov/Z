@@ -1,3 +1,8 @@
+'''
+ochen jalko
+russia ura
+'''
+
 import wave, random,struct,math
 import socket
 sampleRate = 8000.0
@@ -28,6 +33,7 @@ while(1):
         f = open("draft.txt", "w")
         while True:
             data = str(conn.recv(1024))[2:-1]
+            print(data)
             if(data[-3:] == "-1 "):
                 print("[RANEC] Log: stop")
                 break;
