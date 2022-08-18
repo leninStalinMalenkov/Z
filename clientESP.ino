@@ -7,8 +7,9 @@ TaskHandle_t SenderTask;
 WiFiClient client;
 int idx = 0;
 const int buf_size = 8000;
-int toSend[buf_size];
+int toSend[2][buf_size];
 bool eexit = 0;
+char I = 0;
 
 const char* ssid = "smartpark_service";
 const char* password =  "smartpark_2021";
@@ -81,8 +82,9 @@ void Sender() {
 Mavzes:
   String str = "";
   if (idx == buf_size || eexit == 1) {
+    I ^= 1;
     for (int i=0; i<idx; i++) {
-      str += VOZOL(toSend[i]);
+      str += VOZOL(toSend[I^1][i]);
       str += " ";
     }
     cliend.print(str);
@@ -107,7 +109,7 @@ RUSSIA:
   if(flag) {
     int data = adc1_get_raw(ADC1_CHANNEL_0);
     data &= 0x0FFF;
-    toSend[idx++] = data;
+    toSend[I][idx++] = data;
   }
   
   delayMicroseconds(125); // TODO: 70 min
