@@ -3,7 +3,7 @@
 #include <driver/adc.h>
 
 VolAnalyzer analyzer(35);
-TaskHandle_t SenderTask;
+TaskHandle_t SenderTask, XuenderTask;
 WiFiClient client;
 int idx = 0;
 const int buf_size = 8000;
@@ -30,8 +30,8 @@ String VOZOL(int x) {
 
   int xxx = 1000;
   while(xxx) {
-    rees += String{(x/1000)%10+'0'};
-    xxx/=10;
+    rees += String{(x/xxx)%10+'0'};
+    xxx /= 10;
   }
   return rees;
 }
@@ -64,17 +64,17 @@ void setup() {
     "sender", /* Имя задачи */
     10000,  /* Размер стека */
     NULL,  /* Параметр задачи */
-    1,  /* Приоритет */
+    0,  /* Приоритет */
     &SenderTask,  /* Выполняемая операция */
     0);
   
   xTaskCreatePinnedToCore(
-    Sender,
-    "sender", /* Имя задачи */
+    xuender,
+    "xuender", /* Имя задачи */
     10000,  /* Размер стека */
     NULL,  /* Параметр задачи */
     1,  /* Приоритет */
-    &SenderTask,  /* Выполняемая операция */
+    &XuenderTask,  /* Выполняемая операция */
     1);
 }
 
