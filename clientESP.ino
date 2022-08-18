@@ -1,11 +1,25 @@
 #include "WiFi.h"
 #include "VolAnalyzer.h"
+#include <driver/adc.h>
 
 VolAnalyzer analyzer(35);
 
 template<class T>
 T AbS(T x) {
   return (x < 0 ? -x : x);
+}
+
+String answer;
+
+String VOZOL(int x) {
+  String rees;
+
+  int xxx = 1000;
+  while(xxx) {
+    rees += String{(x/1000)%10+'0'};
+    xxx/=10;
+  }
+  return rees;
 }
 
 WiFiClient client;
@@ -21,6 +35,11 @@ void setup() {
   Serial.begin(115200);
   pinMode(but, INPUT_PULLUP);
   pinMode(btn2, INPUT_PULLUP);
+
+  adc1_config_width(ADC_WIDTH_BIT_12);
+  adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
+
+  
 
 
   Serial.println("Connecting to WiFi...\n");
@@ -40,17 +59,22 @@ void setup() {
       Serial.println("Connection to host failed");
       delay(1000);
   }
-  Serial.println("Connected to host...");
+  
 }
 bool flag = false;
+int res = 0;
 void loop() {
-  unsigned long stTime = micros();
-  
+//  unsigned long stTime = micros();
+  Serial.println("OK");
   bool btnState = !digitalRead(but);
   if(flag != btnState) {
     if(flag) {
+      client.print(answer);
+      answer = "";
       delay(100);
       client.print("-1 ");
+      Serial.println(res);
+      res = 0;
     }
     else
       client.print("-2 ");
@@ -59,13 +83,18 @@ void loop() {
   }
   
   if(flag) {
-    int data = analogRead(35);
-    client.print(data);
-    client.print(" ");
+    int data = adc1_get_raw(ADC1_CHANNEL_0);
+    answer += VOZOL(data);
+    answer += " ";
+    data&=0x0FFF;
+    Serial.println(answer);
+    res++;
+    if(answer.length() >= 8000) {
+      client.print(answer);
+      answer = ""; 
+    }
+    Serial.println("OK");
   }
-  unsigned long enTime = micros();
-  unsigned int z = enTime-stTime;
-  unsigned int dl = 125 - z;
-//  Serial.println(125 - z);
-  delayMicroseconds(125 - z); // TODO: 70 min
+  delay(500);
+//  delayMicroseconds(125); // TODO: 70 min
 }
