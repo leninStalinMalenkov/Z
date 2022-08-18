@@ -1,0 +1,16 @@
+import wave, random,struct,math
+sampleRate = 44100.0
+durations = 1
+frequency = 440.0
+
+f = wave.open("a.wav", "w")
+f.setnchannels(1)
+f.setsampwidth(2)
+f.setframerate(sampleRate)
+j = 0
+for i in range(1000000):
+        value = int(math.sin(i)*10000)
+        data = struct.pack('<h', value)
+        f.writeframesraw(data)
+
+f.close()
